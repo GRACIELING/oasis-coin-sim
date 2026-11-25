@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>绿洲共创 · 创想币奖励模拟器</title>
+  <style>
+    :root {
+      --bg: #f3f6fa;
+      --card: #fff;
+      --text: #172b3a;
+      --muted: #687887;
+      --line: #e3eaf0;
+      --primary: #087f72;
+      --soft: #eaf8f4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.65 system-ui, -apple-system, "Segoe UI",
+        "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .container { max-width: 1180px; margin: auto; padding: 28px 20px; }
+    header { margin-bottom: 22px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    h2 { margin: 0 0 16px; font-size: 19px; }
+    p { margin: 8px 0; }
+    .muted { color: var(--muted); }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .config {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    label.field { display: block; font-weight: 600; }
+    label.field > span { display: block; margin-bottom: 7px; }
+    select, input[type="date"], input[type="number"] {
+      font: inherit;
+      background: #fff;
+      border: 1px solid #cbd6df;
+      border-radius: 8px;
+      padding: 9px 10px;
+      min-height: 42px;
+    }
+    .field select, .field input { width: 100%; }
+    select:disabled, input:disabled {
+      background: #f1f4f7;
+      color: #617080;
+      cursor: not-allowed;
+    }
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      vertical-align: middle;
+    }
+    button {
+      font: inherit;
+      font-weight: 600;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      cursor: pointer;
+      background: #fff;
+      color: var(--text);
+    }
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid #9cdcd2;
+      outline-offset: 2px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 18px;
+    }
+    .badge {
+      display: inline-block;
+      background: #eef2f6;
+      color: #566676;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+    }
+    .badge.locked { background: var(--soft); color: var(--primary); }
+    .notice {
+      padding: 12px 14px;
+      border-radius: 9px;
+      background: #f7fafc;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background: #f7fafc;
+      color: #586978;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    td select.task-select { width: 220px; }
+    td select.difficulty { width: 112px; }
+    td input[type="number"] { width: 90px; }
+    .number { font-weight: 700; color: var(--primary); white-space: nowrap; }
+    .small { font-size: 12px; color: var(--muted); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 18px;
+    }
+    .stat .value {
+      margin: 7px 0;
+      font-size: 28px;
+      font-weight: 750;
+      color: var(--primary);
+    }
+    .costs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .cost {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .cost.selected { border-color: var(--primary); background: var(--soft); }
+    .cost .value { margin: 8px 0; font-size: 28px; font-weight: 750; }
+    .cost-title { display: flex; align-items: center; gap: 8px; }
+    .breakdown {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .breakdown div {
+      background: #f7fafc;
+      padding: 12px 14px;
+      border-radius: 9px;
+    }
+    footer { color: var(--muted); font-size: 12px; padding: 0 4px 24px; }
+    @media (max-width: 760px) {
+      .container { padding: 18px 12px; }
+      h1 { font-size: 23px; }
+      .panel { padding: 16px; }
+      .config, .costs { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat { padding: 14px; }
+      .stat .value { font-size: 25px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <h1>绿洲共创 · 创想币奖励模拟器</h1>
+    <p class="muted">
+      分层决定基础奖励，任务难度决定奖励倍数；
+      双周周期内分层与已配置奖励保持不变。
+    </p>
+  </header>
+
+  <section class="panel">
+    <h2>1. 本周期配置</h2>
+
+    <div class="config">
+      <label class="field">
+        <span>创作者分层</span>
+        <select id="layer">
+          <option value="S0">S0 · 初始 / 青铜 · 基础奖励1币</option>
+          <option value="S1">S1 · 白银 · 基础奖励2币</option>
+          <option value="S2">S2 · 黄金 / 铂金 · 基础奖励3币</option>
+          <option value="S3">S3 · 星钻 · 基础奖励4币</option>
+          <option value="S4">S4 · 皇冠 / 王牌 · 基础奖励5币</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>周期开始日期</span>
+        <input id="startDate" type="date" required>
+      </label>
+
+      <label class="field">
+        <span>明细表展示的成本方案</span>
+        <select id="costScheme">
+          <option value="0.1">方案A：0.1元 / 币</option>
+          <option value="0.01">方案B：0.01元 / 币</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="lockButton">创建并锁定本周期</button>
+      <button id="nextButton">清空并新建下一周期</button>
+      <span class="badge" id="statusBadge">配置预览中</span>
+    </div>
+
+    <div class="notice" id="cycleNote"></div>
+    <p class="small" id="saveStatus" role="status"></p>
+  </section>
+
+  <section class="panel">
+    <h2>2. 任务难度与完成情况</h2>
+    <p class="muted">
+      日任务分别录入两个槽位在本周期的累计完成次数，每个槽位最多14次；
+      双周任务各领取一次。修改完成情况后，结果自动更新。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>任务槽位</th>
+            <th>示例任务</th>
+            <th>难度系数</th>
+            <th>单次奖励</th>
+            <th>完成情况</th>
+            <th>累计奖励</th>
+            <th id="costHeader">累计成本 · 0.1元/币</th>
+          </tr>
+        </thead>
+        <tbody id="taskRows"></tbody>
+      </table>
+    </div>
+
+    <div class="notice">
+      <strong>模型边界：</strong>
+      难度系数为示例参数，可选基础×1、进阶×2、高难×3。
+      日任务内容可每天刷新，本页按两个槽位的固定难度与奖励测算。
+      双周任务名称仅作行为示例，实际需另配累计次数、时长等完成门槛。
+      当前假设不同已下发任务满足条件后可以分别发奖。
+    </div>
+  </section>
+
+  <section aria-live="polite" aria-atomic="true">
+    <div class="stats">
+      <div class="stat">
+        <div class="muted">已完成任务次数</div>
+        <div class="value" id="completedCount">0</div>
+        <div class="small">每周期最多31次</div>
+      </div>
+      <div class="stat">
+        <div class="muted">按已完成情况计算</div>
+        <div class="value"><span id="earnedCoins">0</span> 币</div>
+        <div class="small">尚未接入审核或实际发奖系统</div>
+      </div>
+      <div class="stat">
+        <div class="muted">每日满完成奖励</div>
+        <div class="value"><span id="dailyMax">2</span> 币</div>
+        <div class="small">两个日任务槽位奖励合计</div>
+      </div>
+      <div class="stat">
+        <div class="muted">14天满完成奖励</div>
+        <div class="value"><span id="periodMax">31</span> 币</div>
+        <div class="small">28条日任务 + 3条双周任务</div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h2>3. 两套成本方案</h2>
+
+      <div class="costs">
+        <div class="cost selected" id="costA">
+          <div class="cost-title">
+            <strong>方案A</strong>
+            <span class="badge">0.1元 / 币</span>
+          </div>
+          <div class="value" id="earnedCostA">¥0.00</div>
+          <div class="muted">已完成任务奖励最终全部兑换的成本</div>
+          <p>周期满完成成本：<strong id="maxCostA">¥3.10</strong></p>
+        </div>
+
+        <div class="cost" id="costB">
+          <div class="cost-title">
+            <strong>方案B</strong>
+            <span class="badge">0.01元 / 币</span>
+          </div>
+          <div class="value" id="earnedCostB">¥0.00</div>
+          <div class="muted">已完成任务奖励最终全部兑换的成本</div>
+          <p>周期满完成成本：<strong id="maxCostB">¥0.31</strong></p>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div>
+          日任务累计奖励：
+          <strong id="dailyEarned">0币</strong>
+        </div>
+        <div>
+          双周任务累计奖励：
+          <strong id="weeklyEarned">0币</strong>
+        </div>
+        <div>
+          双周任务满完成奖励：
+          <strong id="weeklyMax">3币</strong>
+        </div>
+        <div>
+          距离周期满完成：
+          <strong id="remainingCoins">31币</strong>
+        </div>
+      </div>
+
+      <div class="notice">
+        成本按新增创想币最终100%兑换计算，不含历史余额或额外运营费用，
+        不代表本周期现金支出，也不代表用户可以提现。
+        切换成本方案只改变展示，不改变任务奖励。
+      </div>
+    </section>
+  </section>
+
+  <footer>
+    本页面为预算模拟工具，不会实际发币。
+    数据只保存在当前浏览器本地，不上传服务器；
+    单文件版本一次保存一个周期，不具备账户登录、跨设备同步或服务端防篡改能力。
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+const STORAGE_KEY = "oasis-task-budget-v1";
+const PERIOD_DAYS = 14;
+const BASE_REWARDS = { S0: 1, S1: 2, S2: 3, S3: 4, S4: 5 };
+
+const TASK_LIBRARY = [
+  [1, "登录绿洲启元-共创"],
+  [2, "登录绿洲启元-工坊"],
+  [3, "编辑器创作时长达标"],
+  [4, "发布1次玩法"],
+  [5, "成功发布指定数量玩法"],
+  [6, "使用指定模板发布玩法"],
+  [7, "创建草稿"],
+  [10, "完成玩法试玩"],
+  [11, "完成地图更新"],
+  [12, "发布指定玩法类型地图"],
+  [13, "发布指定玩法标签地图"],
+  [14, "发布赛事地图"],
+  [23, "教程学习数量达标"],
+  [24, "教程学习时长达标"],
+  [25, "游玩指定品类玩法"],
+  [26, "灵感中心浏览时长达标"],
+  [27, "浏览灵感中心话题"],
+  [28, "使用AI问答助手"],
+  [29, "浏览营地绿洲专区"],
+  [30, "查看创作周报"],
+  [31, "分享创作周报"],
+  [32, "参与营地话题活动"],
+  [33, "关注创作者"],
+  [34, "分享自己的玩法"]
+];
+
+const $ = id => document.getElementById(id);
+const numberFormat = new Intl.NumberFormat("zh-CN");
+const moneyFormat = new Intl.NumberFormat("zh-CN", {
+  style: "currency", currency: "CNY",
+  minimumFractionDigits: 2, maximumFractionDigits: 2
+});
+
+function localDate(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function validDate(value) {
+  if (typeof value !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + "T12:00:00");
+  return !Number.isNaN(date.getTime()) && localDate(date) === value;
+}
+
+function addDays(value, days) {
+  const date = new Date(value + "T12:00:00");
+  date.setDate(date.getDate() + days);
+  return localDate(date);
+}
+
+function defaultState(startDate = localDate(), layer = "S0") {
+  return {
+    layer,
+    startDate,
+    locked: false,
+    costScheme: "0.1",
+    tasks: [
+      { type: "daily", task: 1, multiplier: 1, completed: 0 },
+      { type: "daily", task: 3, multiplier: 1, completed: 0 },
+      { type: "weekly", task: 23, multiplier: 1, completed: 0 },
+      { type: "weekly", task: 4, multiplier: 1, completed: 0 },
+      { type: "weekly", task: 11, multiplier: 1, completed: 0 }
+    ]
+  };
+}
+
+function boundedInteger(value, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(max, Math.max(0, Math.floor(n)));
+}
+
+/* 读取本地数据时校验结构，避免异常数据影响计算。 */
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!saved || !Object.hasOwn(BASE_REWARDS, saved.layer) ||
+        !validDate(saved.startDate) ||
+        !Array.isArray(saved.tasks) || saved.tasks.length !== 5) {
+      return defaultState();
+    }
+
+    const clean = defaultState(saved.startDate, saved.layer);
+    clean.locked = saved.locked === true;
+    clean.costScheme = saved.costScheme === "0.01" ? "0.01" : "0.1";
+
+    clean.tasks = clean.tasks.map((task, index) => {
+      const source = saved.tasks[index] || {};
+      const taskId = Number(source.task);
+      return {
+        type: task.type,
+        task: TASK_LIBRARY.some(([id]) => id === taskId)
+          ? taskId : task.task,
+        multiplier: [1, 2, 3].includes(Number(source.multiplier))
+          ? Number(source.multiplier) : 1,
+        completed: boundedInteger(
+          source.completed, task.type === "daily" ? 14 : 1
+        )
+      };
+    });
+    return clean;
+  } catch {
+    return defaultState();
+  }
+}
+
+let state = loadState();
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    $("saveStatus").textContent = "已自动保存到当前浏览器。";
+  } catch {
+    $("saveStatus").textContent =
+      "当前浏览器无法本地保存；仍可计算，但刷新后可能丢失数据。";
+  }
+}
+
+function money(coins, scheme) {
+  // 两个成本方案分别对应每币10分、1分。
+  return moneyFormat.format(
+    coins / (scheme === "0.1" ? 10 : 100)
+  );
+}
+
+function makeOption(value, text) {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = text;
+  return option;
+}
+
+function buildTaskRows() {
+  const tbody = $("taskRows");
+  tbody.replaceChildren();
+  let dailyIndex = 0;
+  let weeklyIndex = 0;
+
+  state.tasks.forEach((task, index) => {
+    const isDaily = task.type === "daily";
+    const slot = isDaily ? ++dailyIndex : ++weeklyIndex;
+    const label = `${isDaily ? "日任务" : "双周任务"} ${slot}`;
+    const row = document.createElement("tr");
+
+    const slotCell = document.createElement("td");
+    slotCell.textContent = label;
+
+    const taskCell = document.createElement("td");
+    const taskSelect = document.createElement("select");
+    taskSelect.className = "task-select";
+    taskSelect.id = `task-${index}`;
+    taskSelect.setAttribute("aria-label", `${label}的示例任务`);
+
+    TASK_LIBRARY.forEach(([id, title]) => {
+      const categoryId = (isDaily ? 1000 : 2000) + id;
+      taskSelect.append(makeOption(id, `${categoryId} · ${title}`));
+    });
+
+    taskSelect.value = task.task;
+    taskSelect.addEventListener("change", () => {
+      if (state.locked) return;
+      task.task = Number(taskSelect.value);
+      render();
+      saveState();
+    });
+    taskCell.append(taskSelect);
+
+    const difficultyCell = document.createElement("td");
+    const difficulty = document.createElement("select");
+    difficulty.id = `difficulty-${index}`;
+    difficulty.className = "difficulty";
+    difficulty.setAttribute("aria-label", `${label}的难度系数`);
+
+    [[1, "基础 ×1"], [2, "进阶 ×2"], [3, "高难 ×3"]]
+      .forEach(([value, text]) => {
+        difficulty.append(makeOption(value, text));
+      });
+
+    difficulty.value = task.multiplier;
+    difficulty.addEventListener("change", () => {
+      if (state.locked) return;
+      task.multiplier = Number(difficulty.value);
+      render();
+      saveState();
+    });
+    difficultyCell.append(difficulty);
+
+    const rewardCell = document.createElement("td");
+    rewardCell.id = `reward-${index}`;
+    rewardCell.className = "number";
+
+    const completeCell = document.createElement("td");
+    const completion = document.createElement("input");
+    completion.id = `completed-${index}`;
+    completion.setAttribute("aria-label", `${label}完成情况`);
+
+    if (isDaily) {
+      completion.type = "number";
+      completion.min = "0";
+      completion.max = "14";
+      completion.step = "1";
+      completion.value = task.completed;
+
+      completion.addEventListener("input", () => {
+        task.completed = boundedInteger(completion.value, 14);
+        render();
+        saveState();
+      });
+
+      completion.addEventListener("change", () => {
+        completion.value = task.completed;
+      });
+
+      completeCell.append(completion);
+      const unit = document.createElement("span");
+      unit.className = "small";
+      unit.textContent = " / 14次";
+      completeCell.append(unit);
+    } else {
+      completion.type = "checkbox";
+      completion.checked = task.completed === 1;
+
+      completion.addEventListener("change", () => {
+        task.completed = completion.checked ? 1 : 0;
+        render();
+        saveState();
+      });
+
+      const checkLabel = document.createElement("label");
+      checkLabel.append(completion, " 已完成");
+      completeCell.append(checkLabel);
+    }
+
+    const coinsCell = document.createElement("td");
+    coinsCell.id = `coins-${index}`;
+    coinsCell.className = "number";
+
+    const costCell = document.createElement("td");
+    costCell.id = `cost-${index}`;
+
+    row.append(
+      slotCell, taskCell, difficultyCell,
+      rewardCell, completeCell, coinsCell, costCell
+    );
+    tbody.append(row);
+  });
+}
+
+function render() {
+  const base = BASE_REWARDS[state.layer];
+  let count = 0;
+  let dailyMax = 0;
+  let weeklyMax = 0;
+  let dailyEarned = 0;
+  let weeklyEarned = 0;
+
+  $("layer").value = state.layer;
+  $("startDate").value = state.startDate;
+  $("costScheme").value = state.costScheme;
+  $("layer").disabled = state.locked;
+  $("startDate").disabled = state.locked;
+  $("lockButton").disabled = state.locked;
+
+  $("statusBadge").textContent = state.locked
+    ? "本周期已锁定" : "配置预览中";
+  $("statusBadge").classList.toggle("locked", state.locked);
+
+  $("cycleNote").textContent =
+    `周期：${state.startDate} 至 ${addDays(state.startDate, 13)}，共14天。` +
+    ` 本周期分层：${state.layer}，基础奖励${base}币。` +
+    (state.locked
+      ? " 分层、任务示例和难度已锁定，仅完成情况与成本展示可调整。"
+      : " 当前为预览；确认配置后请锁定周期。");
+
+  $("costHeader").textContent =
+    `累计成本 · ${state.costScheme}元/币`;
+
+  state.tasks.forEach((task, index) => {
+    const reward = base * task.multiplier;
+    const earned = reward * task.completed;
+    count += task.completed;
+
+    if (task.type === "daily") {
+      dailyMax += reward;
+      dailyEarned += earned;
+    } else {
+      weeklyMax += reward;
+      weeklyEarned += earned;
+    }
+
+    $(`task-${index}`).disabled = state.locked;
+    $(`difficulty-${index}`).disabled = state.locked;
+    $(`reward-${index}`).textContent = `${reward}币`;
+    $(`coins-${index}`).textContent =
+      `${numberFormat.format(earned)}币`;
+    $(`cost-${index}`).textContent = money(earned, state.costScheme);
+  });
+
+  const earned = dailyEarned + weeklyEarned;
+  const periodMax = PERIOD_DAYS * dailyMax + weeklyMax;
+
+  $("completedCount").textContent = count;
+  $("earnedCoins").textContent = numberFormat.format(earned);
+  $("dailyMax").textContent = numberFormat.format(dailyMax);
+  $("periodMax").textContent = numberFormat.format(periodMax);
+  $("dailyEarned").textContent = `${numberFormat.format(dailyEarned)}币`;
+  $("weeklyEarned").textContent = `${numberFormat.format(weeklyEarned)}币`;
+  $("weeklyMax").textContent = `${numberFormat.format(weeklyMax)}币`;
+  $("remainingCoins").textContent =
+    `${numberFormat.format(periodMax - earned)}币`;
+
+  $("earnedCostA").textContent = money(earned, "0.1");
+  $("earnedCostB").textContent = money(earned, "0.01");
+  $("maxCostA").textContent = money(periodMax, "0.1");
+  $("maxCostB").textContent = money(periodMax, "0.01");
+
+  $("costA").classList.toggle("selected", state.costScheme === "0.1");
+  $("costB").classList.toggle("selected", state.costScheme === "0.01");
+}
+
+$("layer").addEventListener("change", event => {
+  if (state.locked) return;
+  state.layer = event.target.value;
+  render();
+  saveState();
+});
+
+$("startDate").addEventListener("change", event => {
+  if (state.locked) return;
+  if (!validDate(event.target.value)) {
+    alert("请输入有效的周期开始日期。");
+    event.target.value = state.startDate;
+    return;
+  }
+  state.startDate = event.target.value;
+  render();
+  saveState();
+});
+
+$("costScheme").addEventListener("change", event => {
+  state.costScheme = event.target.value;
+  render();
+  saveState();
+});
+
+$("lockButton").addEventListener("click", () => {
+  if (state.locked) return;
+
+  if (!validDate($("startDate").value)) {
+    alert("请先填写有效的周期开始日期。");
+    $("startDate").focus();
+    return;
+  }
+
+  state.startDate = $("startDate").value;
+
+  if (!confirm(
+    "锁定后，本周期分层、任务示例和难度不能修改，" +
+    "但仍可更新完成情况。是否确认？"
+  )) return;
+
+  state.locked = true;
+  render();
+  saveState();
+});
+
+$("nextButton").addEventListener("click", () => {
+  if (!confirm(
+    "这将清空当前周期的完成记录，并新建下一个14天周期。" +
+    "当前页面不保留历史周期，是否继续？"
+  )) return;
+
+  const nextDate = addDays(state.startDate, PERIOD_DAYS);
+  const scheme = state.costScheme;
+
+  // 分层暂沿用，用户可在新周期锁定前重新选择。
+  state = defaultState(nextDate, state.layer);
+  state.costScheme = scheme;
+
+  buildTaskRows();
+  render();
+  saveState();
+});
+
+buildTaskRows();
+render();
+saveState();
+</script>
+</body>
+</html>
